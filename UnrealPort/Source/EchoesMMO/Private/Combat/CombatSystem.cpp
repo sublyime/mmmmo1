@@ -169,8 +169,16 @@ void ACombatSystem::ProcessEnemyTurn()
 	}
 	else
 	{
-		// TODO: Use random skill from enemy skill list
-		ExecuteBasicAttack(EnemyCharacter, PlayerCharacter);
+		// Concept for using a random skill:
+		// if (EnemyCharacter->AvailableSkills.Num() > 0) {
+		//     int32 RandomIndex = FMath::RandRange(0, EnemyCharacter->AvailableSkills.Num() - 1);
+		//     FSkillData ChosenSkill = EnemyCharacter->AvailableSkills[RandomIndex];
+		//     ExecuteAction(EnemyCharacter, ChosenSkill);
+		// } else {
+		//     ExecuteBasicAttack(EnemyCharacter, PlayerCharacter);
+		// }
+		
+		ExecuteBasicAttack(EnemyCharacter, PlayerCharacter); // Fallback
 	}
 }
 
@@ -182,8 +190,13 @@ int32 ACombatSystem::CalculateDamage(AMMOCharacter* Attacker, AMMOCharacter* Def
 
 void ACombatSystem::ApplySkillEffects(AMMOCharacter* Target, const FSkillData& Skill)
 {
-	// This would be extended to apply various skill effects like buffs, debuffs, DoT, etc.
-	// For now, it's a placeholder
+	// Placeholder implementation concept:
+	// if (Target && Skill.EffectDuration > 0) {
+	//     FCombatEffect NewEffect;
+	//     NewEffect.Type = Skill.EffectType;
+	//     NewEffect.Duration = Skill.EffectDuration;
+	//     Target->ActiveEffects.Add(NewEffect);
+	// }
 }
 
 void ACombatSystem::AdvanceRound()

@@ -439,7 +439,11 @@ function buildSocialPanel(){
 function sendChat(){
   const inp=document.getElementById('chat-input');
   if(!inp||!inp.value.trim()) return;
-  notify(`Said: "${inp.value}"`, 'info'); inp.value='';
+  
+  // Basic sanitization to prevent XSS in chat
+  const sanitizedInput = inp.value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  notify(`Said: "${sanitizedInput}"`, 'info'); 
+  inp.value='';
 }
 
 function buildMarketPanel(){

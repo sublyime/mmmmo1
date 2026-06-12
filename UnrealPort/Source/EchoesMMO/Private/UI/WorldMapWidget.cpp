@@ -23,17 +23,21 @@ void UWorldMapWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 
 void UWorldMapWidget::RefreshMapDisplay()
 {
-	// TODO: Draw map zones and current player position
+	// TODO: Iterate through available zones in the GameMode/GameState 
+	// and draw them onto the MapCanvas. Highlight the zone matching PlayerCharacter->CurrentZone.
+	// Example:
+	// if (MapCanvas) { /* Draw Map Logic */ }
 }
 
 void UWorldMapWidget::OnZoneClicked(int32 ZoneIndex)
 {
 	SelectedZoneIndex = ZoneIndex;
 
-	// TODO: Update zone info display
 	if (ZoneInfoText)
 	{
-		ZoneInfoText->SetText(FText::FromString(FString::Printf(TEXT("Zone %d selected"), ZoneIndex)));
+		// Ideally, fetch the Zone Name from your GameDataTypes instead of just the index
+		FString ZoneName = FString::Printf(TEXT("Zone %d"), ZoneIndex);
+		ZoneInfoText->SetText(FText::FromString(FString::Printf(TEXT("Selected: %s\nClick Travel to enter."), *ZoneName)));
 	}
 }
 
@@ -50,7 +54,9 @@ void UWorldMapWidget::TravelToZone()
 		AMMOCharacter* PlayerCharacter = Cast<AMMOCharacter>(PlayerController->GetPawn());
 		if (PlayerCharacter)
 		{
-			// TODO: Travel to selected zone
+			// Assuming AMMOCharacter or PlayerController has a Server RPC to handle travel
+			// Example: PlayerCharacter->Server_TravelToZone(static_cast<EZone>(SelectedZoneIndex));
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Yellow, TEXT("Traveling to new zone..."));
 		}
 	}
 }
