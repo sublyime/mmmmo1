@@ -50,6 +50,11 @@ void ACombatSystem::StartCombat(AMMOCharacter* Player, AMMOCharacter* Enemy)
 		return;
 	}
 
+	if (!Player || !Enemy)
+	{
+		return;
+	}
+
 	PlayerCharacter = Player;
 	EnemyCharacter = Enemy;
 	bCombatActive = true;
@@ -82,8 +87,9 @@ void ACombatSystem::EndCombat(AMMOCharacter* Winner, AMMOCharacter* Loser)
 	OnCombatEnded.Broadcast(Winner, Loser);
 
 	// Destroy combat system after a delay
+	FTimerHandle DestroyTimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(
-		FTimerHandle(),
+		DestroyTimerHandle,
 		[this]() { Destroy(); },
 		2.0f,
 		false
@@ -92,17 +98,19 @@ void ACombatSystem::EndCombat(AMMOCharacter* Winner, AMMOCharacter* Loser)
 
 void ACombatSystem::ExecuteAction(AMMOCharacter* Attacker, const FSkillData& Skill)
 {
-	if (GetLocalRole() != ROLE_Authority || !bCombatActive)
+	if (GetLocalRole() != ROLE_Authority || !bCombatActive || !Attacker)
 	{
 		return;
 	}
 
-	if (!bPlayerTurn)
+	bool bIsPlayer = (Attacker == PlayerCharacter);
+	if (bIsPlayer != bPlayerTurn)
 	{
-		return; // Wait for player's turn
+		return; // Not this character's turn
 	}
 
-	AMMOCharacter* Defender = (Attacker == PlayerCharacter) ? EnemyCharacter : PlayerCharacter;
+	AMMOCharacter* Defender = bIsPlayer ? EnemyCharacter : PlayerCharacter;
+	if (!Defender) return;
 
 	// Check mana cost
 	if (Attacker->CurrentMP < Skill.ManaCost)
@@ -124,21 +132,30 @@ void ACombatSystem::ExecuteAction(AMMOCharacter* Attacker, const FSkillData& Ski
 	FString ActionLog = FString::Printf(TEXT("%s used %s for %d damage!"), *Attacker->CharacterName, *Skill.SkillName, Damage);
 	OnCombatRound.Broadcast(Attacker, Defender, Damage, ActionLog);
 
-	// Combo tracking
-	PlayerCombo++;
-
-	// Advance turn
-	bPlayerTurn = false;
-	TurnTimerElapsed = 0.0f;
+	if (bIsPlayer)
+	{
+		// Combo tracking only for player
+		PlayerCombo++;
+		
+		// Advance turn
+		bPlayerTurn = false;
+		TurnTimerElapsed = 0.0f;
+	}
 
 	// Enemy will take turn automatically
 }
 
 void ACombatSystem::ExecuteBasicAttack(AMMOCharacter* Attacker, AMMOCharacter* Defender)
 {
-	if (GetLocalRole() != ROLE_Authority || !bCombatActive)
+	if (GetLocalRole() != ROLE_Authority || !bCombatActive || !Attacker || !Defender)
 	{
 		return;
+	}
+
+	bool bIsPlayer = (Attacker == PlayerCharacter);
+	if (bIsPlayer != bPlayerTurn)
+	{
+		return; // Not this character's turn
 	}
 
 	// Basic attack uses weapon damage
@@ -151,8 +168,12 @@ void ACombatSystem::ExecuteBasicAttack(AMMOCharacter* Attacker, AMMOCharacter* D
 	FString ActionLog = FString::Printf(TEXT("%s attacked %s for %d damage!"), *Attacker->CharacterName, *Defender->CharacterName, Damage);
 	OnCombatRound.Broadcast(Attacker, Defender, Damage, ActionLog);
 
-	bPlayerTurn = false;
-	TurnTimerElapsed = 0.0f;
+	if (bIsPlayer)
+	{
+		PlayerCombo++;
+		bPlayerTurn = false;
+		TurnTimerElapsed = 0.0f;
+	}
 }
 
 void ACombatSystem::ProcessEnemyTurn()
@@ -169,16 +190,32 @@ void ACombatSystem::ProcessEnemyTurn()
 	}
 	else
 	{
-		// Concept for using a random skill:
-		// if (EnemyCharacter->AvailableSkills.Num() > 0) {
-		//     int32 RandomIndex = FMath::RandRange(0, EnemyCharacter->AvailableSkills.Num() - 1);
-		//     FSkillData ChosenSkill = EnemyCharacter->AvailableSkills[RandomIndex];
-		//     ExecuteAction(EnemyCharacter, ChosenSkill);
-		// } else {
-		//     ExecuteBasicAttack(EnemyCharacter, PlayerCharacter);
-		// }
+		bool bSkillExecuted = false;
+
+		if (EnemyCharacter->AvailableSkills.Num() > 0)
+		{
+			// Filter for skills the enemy actually has enough mana to cast
+			TArray<int32> ValidSkillIndices;
+			for (int32 i = 0; i < EnemyCharacter->AvailableSkills.Num(); ++i)
+			{
+				if (EnemyCharacter->CurrentMP >= EnemyCharacter->AvailableSkills[i].ManaCost)
+				{
+					ValidSkillIndices.Add(i);
+				}
+			}
+
+			if (ValidSkillIndices.Num() > 0)
+			{
+				int32 RandomIndex = ValidSkillIndices[FMath::RandRange(0, ValidSkillIndices.Num() - 1)];
+				ExecuteAction(EnemyCharacter, EnemyCharacter->AvailableSkills[RandomIndex]);
+				bSkillExecuted = true;
+			}
+		}
 		
-		ExecuteBasicAttack(EnemyCharacter, PlayerCharacter); // Fallback
+		if (!bSkillExecuted)
+		{
+			ExecuteBasicAttack(EnemyCharacter, PlayerCharacter); // Fallback
+		}
 	}
 }
 

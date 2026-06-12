@@ -61,8 +61,18 @@ void AMMOPlayerController::HideCombatUI()
 
 void AMMOPlayerController::Server_CreateCharacter_Implementation(const FString& CharacterName, ECharacterClass SelectedClass, EFaction SelectedFaction)
 {
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	// Prevent zombie actors (memory leaks) if a client spams character creation
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->Destroy();
+		PlayerCharacter = nullptr;
+	}
+
 	// Spawn player character
-	AMMOCharacter* NewCharacter = GetWorld()->SpawnActor<AMMOCharacter>();
+	AMMOCharacter* NewCharacter = World->SpawnActor<AMMOCharacter>();
 	if (NewCharacter)
 	{
 		NewCharacter->CharacterName = CharacterName;

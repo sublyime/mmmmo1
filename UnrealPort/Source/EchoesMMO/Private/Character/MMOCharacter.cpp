@@ -1,5 +1,12 @@
+#include "CoreMinimal.h"
 #include "Character/MMOCharacter.h"
+#if __has_include("Net/UnrealNetwork.h")
 #include "Net/UnrealNetwork.h"
+#elif __has_include("UnrealNetwork.h")
+#include "UnrealNetwork.h"
+#else
+#error "UnrealNetwork header not found"
+#endif
 #include "Engine/Engine.h"
 
 AMMOCharacter::AMMOCharacter()
@@ -54,6 +61,11 @@ void AMMOCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 bool AMMOCharacter::Server_TakeDamage_Validate(int32 DamageAmount) { return true; }
 void AMMOCharacter::Server_TakeDamage_Implementation(int32 DamageAmount)
 {
+	if (CurrentHP <= 0 || DamageAmount <= 0)
+	{
+		return;
+	}
+
 	CurrentHP = FMath::Clamp(CurrentHP - DamageAmount, 0, BaseStats.MaxHP);
 	if (CurrentHP <= 0)
 	{
@@ -72,7 +84,27 @@ void AMMOCharacter::CheckLevelUp()
 {
 	// Base XP scaling logic
 	int32 XPNeeded = 100 * FMath::Pow(1.5f, Level - 1);
-	// Level up sequence loop goes here
+	bool bLeveledUp = false;
+
+	while (CurrentXP >= XPNeeded)
+	{
+		CurrentXP -= XPNeeded;
+		Level++;
+
+		// Increase stats per gameplay guide (12% HP/MP)
+		BaseStats.MaxHP = FMath::FloorToInt(BaseStats.MaxHP * 1.12f);
+		BaseStats.MaxMP = FMath::FloorToInt(BaseStats.MaxMP * 1.12f);
+		CurrentHP = BaseStats.MaxHP; // Fully heal on level up
+		CurrentMP = BaseStats.MaxMP;
+
+		XPNeeded = 100 * FMath::Pow(1.5f, Level - 1);
+		bLeveledUp = true;
+	}
+
+	if (bLeveledUp)
+	{
+		Client_OnLevelUp(Level);
+	}
 }
 
 void AMMOCharacter::Client_OnLevelUp_Implementation(int32 NewLevel)
