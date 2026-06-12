@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Echoes of the Fractured Realm</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- TITLE SCREEN -->
+<div id="title-screen" class="screen">
+  <div class="star-field" id="stars"></div>
+  <div class="title-logo">
+    <h1>Echoes</h1>
+    <div class="title-divider"></div>
+    <div class="sub">of the Fractured Realm</div>
+    <div class="version">Version 1.0.0 · Eternal Server · Online</div>
+  </div>
+  <div class="title-menu">
+    <button class="title-btn primary" onclick="showCharScreen()">⚔ Enter the Realm</button>
+    <button class="title-btn" onclick="notify('Realms: Eternal-1 (PvP), Caelum-3 (PvE), Void-7 (Hardcore)','info')">◉ Select Server</button>
+    <button class="title-btn" onclick="notify('Options: Ultra Quality, 2560×1440, HDR On','info')">◈ Settings</button>
+    <button class="title-btn" onclick="notify('Echoes MMO — Browser Edition v1.0','info')">? About</button>
+  </div>
+  <div class="title-tagline">A World Shattered Across Seven Fractured Planes</div>
+</div>
+
+<!-- CHARACTER CREATION -->
+<div id="char-screen" class="screen hidden">
+  <div class="char-header">
+    <h2>Choose Your Legend</h2>
+    <p>Select your class, faction, and name to begin your journey</p>
+  </div>
+  <div class="class-grid" id="class-grid">
+    <!-- populated by JS -->
+  </div>
+  <div class="faction-section">
+    <h3>Choose Faction</h3>
+    <div class="faction-grid" id="faction-grid"></div>
+  </div>
+  <div class="name-section">
+    <h3>Name Your Champion</h3>
+    <input type="text" id="char-name-input" placeholder="Enter your name..." maxlength="20" />
+  </div>
+  <button class="create-btn" onclick="startGame()">Begin Your Legend →</button>
+</div>
+
+<!-- MAIN GAME -->
+<div id="game-screen" class="screen hidden" style="position:relative;">
+  <!-- TOP HUD -->
+  <div class="hud-top">
+    <div class="hud-brand"><span>⚡ Echoes</span></div>
+    <div class="hud-player">
+      <div class="player-avatar" id="hud-avatar">⚔</div>
+      <div class="player-info">
+        <div class="player-name-hud" id="hud-name">Hero</div>
+        <div class="player-class-hud" id="hud-class">Warrior · Lv.1</div>
+      </div>
+      <div class="bars-container">
+        <div class="bar-row">
+          <div class="bar-label">HP</div>
+          <div class="bar-track"><div class="bar-fill" id="hp-bar" style="background:var(--hp-color);width:100%"></div></div>
+          <div class="bar-val" id="hp-val">1000/1000</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">MP</div>
+          <div class="bar-track"><div class="bar-fill" id="mp-bar" style="background:var(--mp-color);width:100%"></div></div>
+          <div class="bar-val" id="mp-val">500/500</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">XP</div>
+          <div class="bar-track"><div class="bar-fill" id="xp-bar" style="background:var(--xp-color);width:0%"></div></div>
+          <div class="bar-val" id="xp-val">0/100</div>
+        </div>
+      </div>
+    </div>
+    <div class="hud-stats">
+      <div class="stat-item"><span class="stat-val" id="hud-gold">1,250</span><span class="stat-lbl">Gold</span></div>
+      <div class="stat-item"><span class="stat-val" id="hud-kills">0</span><span class="stat-lbl">Kills</span></div>
+      <div class="stat-item"><span class="stat-val" id="hud-rating">1200</span><span class="stat-lbl">Rating</span></div>
+      <div class="stat-item"><span class="stat-val" id="hud-zone">Ironhaven</span><span class="stat-lbl">Zone</span></div>
+    </div>
+    <div class="hud-nav">
+      <button class="nav-btn active" onclick="switchTab('world')" id="tab-world"><span class="nav-icon">🗺</span>World</button>
+      <button class="nav-btn" onclick="switchTab('pvp')" id="tab-pvp"><span class="nav-icon">⚔</span>PvP</button>
+      <button class="nav-btn" onclick="switchTab('social')" id="tab-social"><span class="nav-icon">⚑</span>Guild</button>
+      <button class="nav-btn" onclick="switchTab('market')" id="tab-market"><span class="nav-icon">⚖</span>Market</button>
+      <button class="nav-btn" onclick="switchTab('char')" id="tab-char"><span class="nav-icon">◈</span>Character</button>
+    </div>
+    <div class="hud-right">
+      <div class="pvp-indicator safe" id="pvp-flag">◉ Safe Zone</div>
+      <div class="server-info"><div>Eternal-1</div><div id="online-count">2,847 Online</div></div>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="main-area">
+    <!-- WORLD MAP PANEL -->
+    <div id="world-panel">
+      <canvas id="world-canvas"></canvas>
+      <div class="zone-tooltip" id="zone-tooltip">
+        <div class="zone-tooltip-name" id="tt-name">Zone Name</div>
+        <div class="zone-tooltip-info">
+          <div id="tt-level">Level Range: 1–10</div>
+          <div id="tt-type">Type: PvE</div>
+          <div id="tt-desc">Description</div>
+          <div id="tt-players" style="color:var(--gold-light);margin-top:4px;"></div>
+        </div>
+      </div>
+      <button class="travel-btn" id="travel-btn" onclick="travelToZone()">⚡ Travel Here</button>
+      <div class="world-controls">
+        <button class="world-btn" onclick="zoomWorld(1.2)">+</button>
+        <button class="world-btn" onclick="zoomWorld(0.83)">-</button>
+        <button class="world-btn" onclick="resetZoom()" title="Reset">⌂</button>
+      </div>
+      <div class="minimap">
+        <canvas id="minimap-canvas"></canvas>
+        <div class="minimap-label">Map</div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+      <div class="panel-tabs">
+        <button class="panel-tab active" onclick="switchRightTab('log')" id="rtab-log">Log</button>
+        <button class="panel-tab" onclick="switchRightTab('lb')" id="rtab-lb">Ranks</button>
+      </div>
+      <div class="panel-content" id="right-content">
+        <!-- populated by JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMBAT OVERLAY -->
+<div id="combat-overlay">
+  <div class="combat-frame hidden" id="combat-frame">
+    <div class="combat-bg"></div>
+    <div class="combat-top">
+      <div class="combatant-frame" id="player-combat-info">
+        <div class="combatant-name" id="c-player-name">Hero</div>
+        <div class="combatant-sub" id="c-player-class">Warrior · Lv.1</div>
+        <div class="effects-row" id="player-effects"></div>
+        <div class="combat-hp-bar"><div class="combat-hp-fill" id="c-player-hp" style="width:100%"></div></div>
+        <div class="combat-hp-text" id="c-player-hp-text">1000 / 1000 HP</div>
+        <div class="combat-hp-bar" style="height:6px;margin-top:3px;"><div class="combat-mp-fill" id="c-player-mp" style="width:100%"></div></div>
+        <div class="combat-hp-text" id="c-player-mp-text">500 / 500 MP</div>
+      </div>
+      <div class="combat-vs">
+        <div class="vs-text">VS</div>
+        <div class="round-display" id="round-display">Round 1</div>
+      </div>
+      <div class="combatant-frame" style="text-align:right;" id="enemy-combat-info">
+        <div class="combatant-name" id="c-enemy-name">Unknown</div>
+        <div class="combatant-sub" id="c-enemy-class">Enemy</div>
+        <div class="effects-row" id="enemy-effects"></div>
+        <div class="combat-hp-bar"><div class="combat-hp-fill" id="c-enemy-hp" style="width:100%"></div></div>
+        <div class="combat-hp-text" id="c-enemy-hp-text">1000 / 1000 HP</div>
+      </div>
+    </div>
+    <div class="combat-arena" id="combat-arena">
+      <div class="fighter-sprite player" id="fighter-player">⚔</div>
+      <div class="fighter-sprite enemy" id="fighter-enemy">👹</div>
+      <div class="combo-bar" id="combo-display" style="display:none;">
+        <div class="combo-count" id="combo-text">3x COMBO!</div>
+      </div>
+      <div class="combat-log-live" id="live-log"></div>
+    </div>
+    <div class="combat-bottom">
+      <div class="combat-status" id="combat-status">Choose your action</div>
+      <div class="skill-bar" id="skill-bar"></div>
+      <div style="text-align:center;margin-top:0.5rem;">
+        <button class="flee-btn" onclick="fleeCombat()">↩ Flee Combat</button>
+      </div>
+    </div>
+    <div class="victory-screen hidden" id="victory-screen">
+      <div class="result-title">Victory!</div>
+      <div class="result-rewards" id="victory-rewards"></div>
+      <button class="result-btn" onclick="closeCombat()">⚡ Continue</button>
+    </div>
+    <div class="defeat-screen hidden" id="defeat-screen">
+      <div class="result-title">Defeated</div>
+      <div style="color:var(--text-muted);margin-bottom:1rem;font-size:0.9rem;">You have fallen in battle...</div>
+      <button class="result-btn" onclick="respawn()">⟳ Respawn at Shrine</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div id="notifications"></div>
+
+<!-- LEVEL UP BANNER -->
+<div class="level-up-banner" id="level-up-banner">
+  <div class="level-up-inner">
+    <div class="level-up-text">Level Up!</div>
+    <div class="level-up-sub" id="level-up-sub">You are now level 2</div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
