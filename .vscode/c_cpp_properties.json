@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "name": "Unreal Engine",
+            "includePath": [
+                "${workspaceFolder}/UnrealPort/Source",
+                "${workspaceFolder}/UnrealPort/Source/EchoesMMO/Public",
+                "${workspaceFolder}/UnrealPort/Source/EchoesMMO/Private",
+                "${workspaceFolder}/UnrealPort/Intermediate/Build/Linux/x86_64/EchoesMMOEditor/Development/EchoesMMO/Public",
+                "${workspaceFolder}/UnrealPort/Intermediate/Build/Linux/x86_64/EchoesMMOEditor/Development/EchoesMMO/Private"
+            ],
+            "defines": [
+                "UE_BUILD_DEBUG=0",
+                "UE_ENGINE_DIRECTORY",
+                "_WINDOWS",
+                "PLATFORM_WINDOWS=0",
+                "PLATFORM_LINUX=1",
+                "NDEBUG"
+            ],
+            "intelliSenseMode": "msvc-x64",
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++20"
+        }
+    ],
+    "version": 4
+}

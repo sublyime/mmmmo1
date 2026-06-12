@@ -1,0 +1,10 @@
+{
+    "C_Cpp.default.intelliSenseEngine": "disabled",
+    "C_Cpp.default.enableConfigurationSquiggles": false,
+    "C_Cpp.errorSquiggles": "disabled",
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "[cpp]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools",
+        "editor.formatOnSave": false
+    }
+}

@@ -1,13 +1,8 @@
 #include "CoreMinimal.h"
-#include "Character/MMOCharacter.h"
-#if __has_include("Net/UnrealNetwork.h")
+#include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
-#elif __has_include("UnrealNetwork.h")
-#include "UnrealNetwork.h"
-#else
-#error "UnrealNetwork header not found"
-#endif
-#include "Engine/Engine.h"
+#include "MMOCharacter.h"
+#include "EchoesMMO.h"
 
 AMMOCharacter::AMMOCharacter()
 {
