@@ -1,8 +1,25 @@
-# Echoes of the Fractured Realm - Unreal Engine 5
+# Echoes of the Fractured Realm - Unreal Engine 5 🎮
 
-A fully-featured MMO game refactored from browser-based (HTML/CSS/JS) to **Unreal Engine 5** with C++ and Blueprint integration.
+A fully-featured MMO game refactored from browser-based (HTML/CSS/JS) to **Unreal Engine 5** with production-ready C++ core systems and Blueprint extension points. Implements server-authoritative multiplayer architecture with full replication support.
 
-## Project Structure
+## 📋 System Requirements
+
+- **OS**: Windows 10/11 (primary) or Linux
+- **Engine**: Unreal Engine 5.4+
+- **Compiler**: Visual Studio 2022 (C++ workload) or Clang/GCC (Linux)
+- **RAM**: 16GB minimum (32GB recommended)
+- **Disk**: 100GB+ free (including engine)
+- **GPU**: DirectX 12 compatible
+
+## 🏗️ Project Architecture
+
+This is a **production-ready C++ project** with:
+- **Server Authority**: All game logic runs on server; clients send input via RPC
+- **Full Replication**: Player stats, inventory, zone state replicated to all clients
+- **Blueprint Extensions**: Artists/designers can create content without touching C++
+- **Modular Design**: Each system (Combat, Inventory, UI) is self-contained
+
+## 📂 Project Structure
 
 ```
 UnrealPort/
@@ -66,35 +83,46 @@ UnrealPort/
 - RPC for character creation
 - Player controller management
 
-## Feature Checklist
+## ✅ Feature Implementation Status
 
-- [x] Character creation system (C++ structure)
-- [x] Combat system foundation
-- [x] Zone management
-- [x] Enemy database & spawning
-- [x] Inventory system
-- [x] Progression & leveling
-- [x] Networking framework
-- [ ] **UI/UMG Widgets** (to be built)
-- [ ] Combat animations
-- [ ] 3D character models
-- [ ] World level design
-- [ ] NPC system
-- [ ] PvP arenas
-- [ ] Guild system
-- [ ] Marketplace
-- [ ] Leaderboards
+### Core Systems - COMPLETE ✓
+- [x] **Character System**: 4 classes, 3 factions, base/calculated stats, progression
+- [x] **Combat System**: Turn-based, skill system, damage calculation, AI enemies
+- [x] **Zone Management**: 7 zones with level requirements, PvP flags, difficulty scaling
+- [x] **Inventory System**: Item types, rarity system, storage, equipping
+- [x] **Progression**: Leveling, XP scaling, stat growth, skill unlocking
+- [x] **Networking**: Server authority, full replication, RPC validation
+- [x] **Enemy System**: Spawning, AI, loot generation, difficulty scaling
+- [x] **Main HUD**: Player stats, notifications, level-up banners
 
-## Getting Started
+### UI/UMG - IN PROGRESS (60%)
+- [x] Main HUD actor & widget management
+- [x] Title screen with starfield animation
+- [x] Character creation screen
+- [x] World map widget
+- [x] Combat overlay with action buttons
+- [x] Inventory display
+- [ ] Equipment panel (partial)
+- [ ] Quest log & tracker
+- [ ] Guild UI
 
-### Prerequisites
-- Unreal Engine 5.4+
-- Visual Studio 2022+ (for C++ compilation)
-- Windows 10/11
+### Content & Polish - PLANNED
+- [ ] 3D character models (rigged)
+- [ ] Skeletal animations (idle, walk, attack, spell cast)
+- [ ] World level design & decoration
+- [ ] NPC dialogue system
+- [ ] PvP arena implementation
+- [ ] Guild system with permissions
+- [ ] Leaderboards & rankings
+- [ ] Sound effects & music
+- [ ] Visual effects (spell impacts, hits)
+- [ ] Crossplay & Steam integration
 
-### Build Instructions
+## 🚀 Getting Started
 
-1. **Generate Visual Studio project files:**
+### Quick Setup (Windows)
+
+1. **Clone & Generate Project Files:**
    ```bash
    cd UnrealPort
    right-click EchoesMMO.uproject

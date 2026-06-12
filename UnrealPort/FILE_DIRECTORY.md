@@ -2,22 +2,25 @@
 
 ## 📍 Quick Navigation
 
-**Just arrived?** Start here:
-1. Read [DELIVERY_SUMMARY.md](DELIVERY_SUMMARY.md) (2 min) - Overview of what was built
-2. Follow [QUICK_START.md](QUICK_START.md) (5 min) - Get it running
-3. Explore [GAMEPLAY_FLOW.md](GAMEPLAY_FLOW.md) (10 min) - Understand the game
+**First time?** Follow these steps:
+1. Read [DELIVERY_SUMMARY.md](DELIVERY_SUMMARY.md) (5 min) - Overview of systems
+2. Follow [QUICK_START.md](QUICK_START.md) (10 min) - Build & test  
+3. Reference this file (FILE_DIRECTORY.md) when exploring code
+4. Check [GAMEPLAY_FLOW.md](GAMEPLAY_FLOW.md) for game design
+5. See [NETWORKING.md](NETWORKING.md) for multiplayer details
 
 ---
 
-## 📚 Documentation Files
+## 📚 Documentation Files Quick Reference
 
-| File | Purpose | Read Time |
-|------|---------|-----------|
-| **DELIVERY_SUMMARY.md** | What was delivered, features checklist | 2 min |
-| **README.md** | Architecture overview, project structure | 5 min |
-| **QUICK_START.md** | Setup instructions, Blueprint guide, testing checklist | 10 min |
-| **GAMEPLAY_FLOW.md** | Complete game flow from title to endgame, skill details | 10 min |
-| **NETWORKING.md** | Multiplayer setup, replication, server architecture | 10 min |
+| File | Purpose | Time | For |
+|------|---------|------|-----|
+| **DELIVERY_SUMMARY.md** | Feature checklist & status | 5 min | Everyone |
+| **README.md** | Architecture & C++ overview | 5 min | Developers |
+| **QUICK_START.md** | Setup, build, first run | 10 min | First-timers |
+| **FILE_DIRECTORY.md** | Code structure (this file) | 10 min | Developers |
+| **GAMEPLAY_FLOW.md** | Game design & mechanics | 10 min | Designers |
+| **NETWORKING.md** | Multiplayer & replication | 10 min | Network devs |
 
 ---
 
