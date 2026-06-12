@@ -44,14 +44,15 @@ function buildSkillBar(){
     btn.className='skill-btn'+(cd>0?' on-cooldown':'');
     btn.disabled=!canUse||!gameState.combat.playerTurn;
     btn.innerHTML=`${sk.icon} ${sk.name}<span class="skill-cd">${sk.dmg} · ${sk.cost}MP${cd>0?' (CD:'+cd+')':''}</span>`;
-    btn.onclick=()=>useSkill(i);
+    btn.addEventListener('click', () => useSkill(i));
     bar.appendChild(btn);
   });
   // Basic attack
   const ba=document.createElement('button'); ba.className='skill-btn';
   ba.disabled=!gameState.combat.playerTurn;
   ba.innerHTML=`⚡ Basic Attack<span class="skill-cd">${Math.floor(gameState.player.atk*0.8)}-${gameState.player.atk} · Free</span>`;
-  ba.onclick=()=>basicAttack(); bar.appendChild(ba);
+  ba.addEventListener('click', basicAttack);
+  bar.appendChild(ba);
 }
 
 function useSkill(skillIndex){

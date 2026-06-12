@@ -42,16 +42,16 @@ describe('Echoes MMO UI Tests', () => {
       expect(subtitle.textContent).toBe('of the Fractured Realm');
     });
 
-    it('should have four main menu buttons', () => {
+    it('should have five main menu buttons', () => {
       const buttons = document.querySelectorAll('#title-screen .title-btn');
-      expect(buttons.length).toBe(4);
-      expect(buttons[0].textContent).toBe('⚔ Enter the Realm');
-      expect(buttons[1].textContent).toBe('◉ Select Server');
+      expect(buttons.length).toBe(5);
+      expect(buttons[0].textContent).toBe('⚔ New Game');
+      expect(buttons[1].textContent).toBe('⟳ Continue Journey');
     });
 
-    it('should have an onclick handler to enter the realm', () => {
+    it('should have a distinct id on the button to enter the realm', () => {
         const enterButton = document.querySelector('.title-btn.primary');
-        expect(enterButton.getAttribute('onclick')).toBe('showCharScreen()');
+        expect(enterButton.id).toBe('btn-enter-realm');
     });
   });
 
@@ -64,11 +64,11 @@ describe('Echoes MMO UI Tests', () => {
       expect(nameInput.getAttribute('placeholder')).toBe('Enter your name...');
     });
 
-    it('should have a "Begin Your Legend" button with an onclick handler', () => {
+    it('should have a "Begin Your Legend" button with an id', () => {
       const createBtn = document.querySelector('#char-screen .create-btn');
       expect(createBtn).not.toBeNull();
       expect(createBtn.textContent).toBe('Begin Your Legend →');
-      expect(createBtn.getAttribute('onclick')).toBe('startGame()');
+      expect(createBtn.id).toBe('btn-start-game');
     });
   });
 
@@ -127,6 +127,138 @@ describe('Echoes MMO UI Tests', () => {
         const defeatScreen = document.getElementById('defeat-screen');
         expect(victoryScreen.classList.contains('hidden')).toBe(true);
         expect(defeatScreen.classList.contains('hidden')).toBe(true);
+    });
+  });
+
+  describe('Save and Load System', () => {
+    let gameModule;
+    let mocks;
+
+    beforeAll(() => {
+      // Load script.js and wrap it in a controlled sandbox function.
+      // This lets us evaluate it without polluting the global scope or triggering
+      // immediate events (like DOMContentLoaded) which would crash without data.js/ui.js
+      const scriptContent = fs.readFileSync(path.resolve(__dirname, './script.js'), 'utf8');
+      
+      const wrapper = `
+        // Intercept DOMContentLoaded to prevent automatic initialization during eval
+        const originalAddEventListener = document.addEventListener;
+        document.addEventListener = function(event, cb) {
+          if (event === 'DOMContentLoaded') return;
+          originalAddEventListener.call(document, event, cb);
+        };
+        
+        // Provide mock references for functions located in other files (ui.js, data.js)
+        let notify = () => {};
+        let initGameUI = () => {};
+        let renderRightPanel = () => {};
+        let updateHUD = () => {};
+        
+        ${scriptContent}
+        
+        // Restore original listener
+        document.addEventListener = originalAddEventListener;
+
+        // Expose interfaces for testing
+        return {
+          getGameState: () => gameState,
+          saveGame: () => saveGame(),
+          loadGame: () => loadGame(),
+          mockGlobals: (newMocks) => {
+            addLog = newMocks.addLog || addLog;
+            startGameTick = newMocks.startGameTick || startGameTick;
+            notify = newMocks.notify || notify;
+            initGameUI = newMocks.initGameUI || initGameUI;
+          }
+        };
+      `;
+      
+      gameModule = new Function(wrapper)();
+    });
+
+    beforeEach(() => {
+      localStorage.clear();
+      document.body.innerHTML = html;
+      
+      mocks = {
+        addLog: jest.fn(),
+        notify: jest.fn(),
+        initGameUI: jest.fn(),
+        startGameTick: jest.fn()
+      };
+      
+      gameModule.mockGlobals(mocks);
+    });
+
+    it('should save the current gameState to localStorage', () => {
+      const state = gameModule.getGameState();
+      state.player.name = 'TestSaver';
+      state.player.level = 42;
+      
+      gameModule.saveGame();
+      
+      const savedData = localStorage.getItem('echoes_save');
+      expect(savedData).not.toBeNull();
+      
+      const parsedData = JSON.parse(savedData);
+      expect(parsedData.player.name).toBe('TestSaver');
+      expect(parsedData.player.level).toBe(42);
+      
+      expect(mocks.addLog).toHaveBeenCalledWith('💾 Game auto-saved.', 'system');
+    });
+
+    it('should load gameState from localStorage and initialize UI correctly', () => {
+      const fakeSave = {
+        screen: 'game',
+        player: { name: 'LoadedHero', level: 99, hp: 100, hpMax: 100 },
+        combat: { active: true } // simulating active combat to check dismissal logic
+      };
+      localStorage.setItem('echoes_save', JSON.stringify(fakeSave));
+      
+      // Setup initial DOM state simulating title screen
+      document.getElementById('title-screen').classList.remove('hidden');
+      document.getElementById('game-screen').classList.add('hidden');
+      document.getElementById('combat-frame').classList.remove('hidden');
+      
+      gameModule.loadGame();
+      
+      const state = gameModule.getGameState();
+      expect(state.player.name).toBe('LoadedHero');
+      expect(state.player.level).toBe(99);
+      expect(state.combat.active).toBe(false);
+      
+      // Verify UI transitions
+      expect(document.getElementById('title-screen').classList.contains('hidden')).toBe(true);
+      expect(document.getElementById('char-screen').classList.contains('hidden')).toBe(true);
+      expect(document.getElementById('game-screen').classList.contains('hidden')).toBe(false);
+      expect(document.getElementById('combat-frame').classList.contains('hidden')).toBe(true);
+      
+      // Verify dependencies were called
+      expect(mocks.initGameUI).toHaveBeenCalled();
+      expect(mocks.startGameTick).toHaveBeenCalled();
+      expect(mocks.notify).toHaveBeenCalledWith('Game loaded successfully!', 'success');
+    });
+
+    it('should handle loadGame when no save data exists', () => {
+      gameModule.loadGame();
+      
+      expect(mocks.notify).toHaveBeenCalledWith('No save file found.', 'danger');
+      expect(mocks.initGameUI).not.toHaveBeenCalled();
+    });
+
+    it('should handle loadGame gracefully with corrupted JSON save data', () => {
+      localStorage.setItem('echoes_save', '{ bad_json: "data"');
+      
+      // Spy on console.error to prevent it from cluttering the test output
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      
+      gameModule.loadGame();
+      
+      expect(mocks.notify).toHaveBeenCalledWith('Failed to load save file.', 'danger');
+      expect(mocks.initGameUI).not.toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalled();
+      
+      consoleSpy.mockRestore();
     });
   });
 

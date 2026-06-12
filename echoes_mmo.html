@@ -18,10 +18,11 @@
     <div class="version">Version 1.0.0 · Eternal Server · Online</div>
   </div>
   <div class="title-menu">
-    <button class="title-btn primary" onclick="showCharScreen()">⚔ Enter the Realm</button>
-    <button class="title-btn" onclick="notify('Realms: Eternal-1 (PvP), Caelum-3 (PvE), Void-7 (Hardcore)','info')">◉ Select Server</button>
-    <button class="title-btn" onclick="notify('Options: Ultra Quality, 2560×1440, HDR On','info')">◈ Settings</button>
-    <button class="title-btn" onclick="notify('Echoes MMO — Browser Edition v1.0','info')">? About</button>
+    <button class="title-btn primary" id="btn-enter-realm">⚔ New Game</button>
+    <button class="title-btn" id="btn-load-game">⟳ Continue Journey</button>
+    <button class="title-btn" id="btn-select-server">◉ Select Server</button>
+    <button class="title-btn" id="btn-settings">◈ Settings</button>
+    <button class="title-btn" id="btn-about">? About</button>
   </div>
   <div class="title-tagline">A World Shattered Across Seven Fractured Planes</div>
 </div>
@@ -43,7 +44,7 @@
     <h3>Name Your Champion</h3>
     <input type="text" id="char-name-input" placeholder="Enter your name..." maxlength="20" />
   </div>
-  <button class="create-btn" onclick="startGame()">Begin Your Legend →</button>
+  <button class="create-btn" id="btn-start-game">Begin Your Legend →</button>
 </div>
 
 <!-- MAIN GAME -->
@@ -82,11 +83,11 @@
       <div class="stat-item"><span class="stat-val" id="hud-zone">Ironhaven</span><span class="stat-lbl">Zone</span></div>
     </div>
     <div class="hud-nav">
-      <button class="nav-btn active" onclick="switchTab('world')" id="tab-world"><span class="nav-icon">🗺</span>World</button>
-      <button class="nav-btn" onclick="switchTab('pvp')" id="tab-pvp"><span class="nav-icon">⚔</span>PvP</button>
-      <button class="nav-btn" onclick="switchTab('social')" id="tab-social"><span class="nav-icon">⚑</span>Guild</button>
-      <button class="nav-btn" onclick="switchTab('market')" id="tab-market"><span class="nav-icon">⚖</span>Market</button>
-      <button class="nav-btn" onclick="switchTab('char')" id="tab-char"><span class="nav-icon">◈</span>Character</button>
+      <button class="nav-btn active" id="tab-world"><span class="nav-icon">🗺</span>World</button>
+      <button class="nav-btn" id="tab-pvp"><span class="nav-icon">⚔</span>PvP</button>
+      <button class="nav-btn" id="tab-social"><span class="nav-icon">⚑</span>Guild</button>
+      <button class="nav-btn" id="tab-market"><span class="nav-icon">⚖</span>Market</button>
+      <button class="nav-btn" id="tab-char"><span class="nav-icon">◈</span>Character</button>
     </div>
     <div class="hud-right">
       <div class="pvp-indicator safe" id="pvp-flag">◉ Safe Zone</div>
@@ -108,11 +109,11 @@
           <div id="tt-players" style="color:var(--gold-light);margin-top:4px;"></div>
         </div>
       </div>
-      <button class="travel-btn" id="travel-btn" onclick="travelToZone()">⚡ Travel Here</button>
+      <button class="travel-btn" id="travel-btn">⚡ Travel Here</button>
       <div class="world-controls">
-        <button class="world-btn" onclick="zoomWorld(1.2)">+</button>
-        <button class="world-btn" onclick="zoomWorld(0.83)">-</button>
-        <button class="world-btn" onclick="resetZoom()" title="Reset">⌂</button>
+        <button class="world-btn" id="btn-zoom-in">+</button>
+        <button class="world-btn" id="btn-zoom-out">-</button>
+        <button class="world-btn" id="btn-zoom-reset" title="Reset">⌂</button>
       </div>
       <div class="minimap">
         <canvas id="minimap-canvas"></canvas>
@@ -123,8 +124,8 @@
     <!-- RIGHT PANEL -->
     <div class="right-panel">
       <div class="panel-tabs">
-        <button class="panel-tab active" onclick="switchRightTab('log')" id="rtab-log">Log</button>
-        <button class="panel-tab" onclick="switchRightTab('lb')" id="rtab-lb">Ranks</button>
+        <button class="panel-tab active" id="rtab-log">Log</button>
+        <button class="panel-tab" id="rtab-lb">Ranks</button>
       </div>
       <div class="panel-content" id="right-content">
         <!-- populated by JS -->
@@ -171,18 +172,18 @@
       <div class="combat-status" id="combat-status">Choose your action</div>
       <div class="skill-bar" id="skill-bar"></div>
       <div style="text-align:center;margin-top:0.5rem;">
-        <button class="flee-btn" onclick="fleeCombat()">↩ Flee Combat</button>
+        <button class="flee-btn" id="btn-flee">↩ Flee Combat</button>
       </div>
     </div>
     <div class="victory-screen hidden" id="victory-screen">
       <div class="result-title">Victory!</div>
       <div class="result-rewards" id="victory-rewards"></div>
-      <button class="result-btn" onclick="closeCombat()">⚡ Continue</button>
+      <button class="result-btn" id="btn-victory-continue">⚡ Continue</button>
     </div>
     <div class="defeat-screen hidden" id="defeat-screen">
       <div class="result-title">Defeated</div>
       <div style="color:var(--text-muted);margin-bottom:1rem;font-size:0.9rem;">You have fallen in battle...</div>
-      <button class="result-btn" onclick="respawn()">⟳ Respawn at Shrine</button>
+      <button class="result-btn" id="btn-defeat-respawn">⟳ Respawn at Shrine</button>
     </div>
   </div>
 </div>

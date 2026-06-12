@@ -112,7 +112,43 @@ function toggleQueue(arenaId){
 // LOGIC & STATE
 // ============================================================
 
-function addLog(msg,type){ gameState.combatLog.push({msg,type}); if(gameState.rightTab==='log') renderRightPanel(); }
+function saveGame() {
+  localStorage.setItem('echoes_save', JSON.stringify(gameState));
+  addLog('💾 Game auto-saved.', 'system');
+}
+
+function loadGame() {
+  const savedData = localStorage.getItem('echoes_save');
+  if (savedData) {
+    try {
+      gameState = JSON.parse(savedData);
+      document.getElementById('title-screen').classList.add('hidden');
+      document.getElementById('char-screen').classList.add('hidden');
+      document.getElementById('game-screen').classList.remove('hidden');
+      
+      // Dismiss any active combat to prevent UI desynchronization on load
+      if (gameState.combat.active) {
+        gameState.combat.active = false;
+        document.getElementById('combat-frame').classList.add('hidden');
+      }
+      
+      initGameUI();
+      startGameTick();
+      notify('Game loaded successfully!', 'success');
+    } catch (e) {
+      console.error('Failed to parse save data:', e);
+      notify('Failed to load save file.', 'danger');
+    }
+  } else {
+    notify('No save file found.', 'danger');
+  }
+}
+
+function addLog(msg,type){ 
+  gameState.combatLog.push({msg,type}); 
+  if (gameState.combatLog.length > 100) gameState.combatLog.shift(); // Keep payload size minimal
+  if(gameState.rightTab==='log') renderRightPanel(); 
+}
 
 function buyItem(name,price){
   if(gameState.player.gold<price){ notify('Not enough gold!','danger'); return; }
@@ -199,4 +235,41 @@ function startGameTick(){
 // ============================================================
 // INIT
 // ============================================================
-buildStars();
+
+function initEvents() {
+  // Main Menu & Char Creation
+  document.getElementById('btn-enter-realm').addEventListener('click', showCharScreen);
+  document.getElementById('btn-load-game').addEventListener('click', loadGame);
+  document.getElementById('btn-select-server').addEventListener('click', () => notify('Realms: Eternal-1 (PvP), Caelum-3 (PvE), Void-7 (Hardcore)', 'info'));
+  document.getElementById('btn-settings').addEventListener('click', () => notify('Options: Ultra Quality, 2560×1440, HDR On', 'info'));
+  document.getElementById('btn-about').addEventListener('click', () => notify('Echoes MMO — Browser Edition v1.0', 'info'));
+  document.getElementById('btn-start-game').addEventListener('click', startGame);
+
+  // Navigation Tabs
+  document.getElementById('tab-world').addEventListener('click', () => switchTab('world'));
+  document.getElementById('tab-pvp').addEventListener('click', () => switchTab('pvp'));
+  document.getElementById('tab-social').addEventListener('click', () => switchTab('social'));
+  document.getElementById('tab-market').addEventListener('click', () => switchTab('market'));
+  document.getElementById('tab-char').addEventListener('click', () => switchTab('char'));
+
+  // World Map Controls
+  document.getElementById('travel-btn').addEventListener('click', () => travelToZone());
+  document.getElementById('btn-zoom-in').addEventListener('click', () => zoomWorld(1.2));
+  document.getElementById('btn-zoom-out').addEventListener('click', () => zoomWorld(0.83));
+  document.getElementById('btn-zoom-reset').addEventListener('click', resetZoom);
+
+  // Side Panel Tabs & Combat Actions
+  document.getElementById('rtab-log').addEventListener('click', () => switchRightTab('log'));
+  document.getElementById('rtab-lb').addEventListener('click', () => switchRightTab('lb'));
+  document.getElementById('btn-flee').addEventListener('click', fleeCombat);
+  document.getElementById('btn-victory-continue').addEventListener('click', closeCombat);
+  document.getElementById('btn-defeat-respawn').addEventListener('click', respawn);
+
+  // Save game automatically if the user closes the browser or refreshes
+  window.addEventListener('beforeunload', saveGame);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  buildStars();
+  initEvents();
+});

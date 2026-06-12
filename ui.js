@@ -23,7 +23,7 @@ function showCharScreen(){
 function buildClassGrid(){
   const grid=document.getElementById('class-grid');
   grid.innerHTML=CLASSES.map(c=>`
-    <div class="class-card${gameState.player.cls===c.id?' selected':''}" onclick="selectClass('${c.id}')">
+    <div class="class-card${gameState.player.cls===c.id?' selected':''}" data-class="${c.id}">
       <div class="class-icon">${c.icon}</div>
       <div class="class-name">${c.name}</div>
       <div class="class-role">${c.role}</div>
@@ -31,17 +31,23 @@ function buildClassGrid(){
       <div class="class-stats">${c.stats.map(s=>`<span class="stat-pip">${s}</span>`).join('')}</div>
     </div>
   `).join('');
+  grid.querySelectorAll('.class-card').forEach(card => {
+    card.addEventListener('click', e => selectClass(e.currentTarget.dataset.class));
+  });
 }
 
 function buildFactionGrid(){
   const grid=document.getElementById('faction-grid');
   grid.innerHTML=FACTIONS.map(f=>`
-    <div class="faction-card${gameState.player.faction===f.id?' selected':''}" onclick="selectFaction('${f.id}')">
+    <div class="faction-card${gameState.player.faction===f.id?' selected':''}" data-faction="${f.id}">
       <div class="faction-name">${f.icon} ${f.name}</div>
       <div class="faction-bonus" style="color:var(--gold-light);margin-top:4px;font-size:0.72rem;">${f.bonus}</div>
       <div class="faction-bonus">${f.desc}</div>
     </div>
   `).join('');
+  grid.querySelectorAll('.faction-card').forEach(card => {
+    card.addEventListener('click', e => selectFaction(e.currentTarget.dataset.faction));
+  });
 }
 
 function initGameUI(){
@@ -221,9 +227,9 @@ function buildCombatLogHTML(){
 function buildLeaderboardHTML(){
   return `<div class="leaderboard-title">PvP Rankings — Eternal Server</div>
   <div class="lb-tabs">
-    <button class="lb-tab active" onclick="">PvP</button>
-    <button class="lb-tab" onclick="">Kills</button>
-    <button class="lb-tab" onclick="">Rating</button>
+    <button class="lb-tab active">PvP</button>
+    <button class="lb-tab">Kills</button>
+    <button class="lb-tab">Rating</button>
   </div>
   ${LEADERBOARD_PVP.map((p,i)=>{
     const rankClass=i===0?'gold':i===1?'silver':i===2?'bronze':'';
@@ -267,6 +273,11 @@ function showFullPanel(tab){
   div.querySelectorAll('[data-queue]').forEach(btn=>{
     btn.addEventListener('click',()=>toggleQueue(btn.dataset.queue));
   });
+  div.querySelectorAll('[data-action="faction-attack"]').forEach(btn => btn.addEventListener('click', factionAttack));
+  div.querySelectorAll('[data-action="notify"]').forEach(btn => btn.addEventListener('click', (e) => notify(e.currentTarget.dataset.msg, e.currentTarget.dataset.type)));
+  div.querySelectorAll('[data-action="send-chat"]').forEach(btn => btn.addEventListener('click', sendChat));
+  div.querySelectorAll('[data-action="filter-market"]').forEach(btn => btn.addEventListener('click', (e) => filterMarket(e.currentTarget.dataset.filter, e.currentTarget)));
+  div.querySelectorAll('[data-action="buy-item"]').forEach(btn => btn.addEventListener('click', (e) => buyItem(e.currentTarget.dataset.item, parseInt(e.currentTarget.dataset.price, 10))));
 }
 
 function buildPvPPanel(){
@@ -311,7 +322,7 @@ function buildPvPPanel(){
           <span style="color:#8a6a2a">🌊 Sunken ${fw.sunken}%</span>
           <span style="color:#6a2a8a">🌀 Voidborn ${fw.voidborn}%</span>
         </div>
-        <button onclick="factionAttack()" style="margin-top:0.75rem;width:100%;background:rgba(201,168,76,0.1);border:1px solid var(--gold);color:var(--gold);padding:0.5rem;font-size:0.75rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:3px;font-family:inherit;">⚔ Contribute to Faction War</button>
+        <button data-action="faction-attack" style="margin-top:0.75rem;width:100%;background:rgba(201,168,76,0.1);border:1px solid var(--gold);color:var(--gold);padding:0.5rem;font-size:0.75rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:3px;font-family:inherit;">⚔ Contribute to Faction War</button>
       </div>
     </div>
 
@@ -323,7 +334,7 @@ function buildPvPPanel(){
         <div class="bounty-name"><span>${b.name}</span><span>${b.cls}</span></div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
           <div class="bounty-gold">${b.reward.toLocaleString()} G</div>
-          <button onclick="notify('Tracking ${b.name}...','danger')" style="background:rgba(192,57,43,0.1);border:1px solid var(--red);color:var(--red-light);padding:2px 8px;font-size:0.6rem;cursor:pointer;border-radius:3px;font-family:inherit;letter-spacing:1px;text-transform:uppercase;">Hunt</button>
+          <button data-action="notify" data-msg="Tracking ${b.name}..." data-type="danger" style="background:rgba(192,57,43,0.1);border:1px solid var(--red);color:var(--red-light);padding:2px 8px;font-size:0.6rem;cursor:pointer;border-radius:3px;font-family:inherit;letter-spacing:1px;text-transform:uppercase;">Hunt</button>
         </div>
       </div>`).join('')}
     </div>
@@ -341,7 +352,7 @@ function buildPvPPanel(){
           <div style="font-size:0.65rem;color:${o.status==='Contested'?'var(--orange-light)':'var(--green-light)'};margin-top:3px;">${o.status}</div>
           <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">Holder: ${o.holder}</div>
           <div style="font-size:0.65rem;color:var(--gold-light);margin-top:2px;">Bonus: ${o.bonus}</div>
-          <button onclick="notify('Traveling to ${o.name}...','info')" style="width:100%;margin-top:0.5rem;background:transparent;border:1px solid var(--border-gold);color:var(--gold);padding:3px;font-size:0.65rem;cursor:pointer;border-radius:3px;font-family:inherit;letter-spacing:1px;text-transform:uppercase;">Capture</button>
+          <button data-action="notify" data-msg="Traveling to ${o.name}..." data-type="info" style="width:100%;margin-top:0.5rem;background:transparent;border:1px solid var(--border-gold);color:var(--gold);padding:3px;font-size:0.65rem;cursor:pointer;border-radius:3px;font-family:inherit;letter-spacing:1px;text-transform:uppercase;">Capture</button>
         </div>`).join('')}
       </div>
     </div>
@@ -402,7 +413,7 @@ function buildSocialPanel(){
               <div class="online-player-name">${m.name}</div>
               <div class="online-player-zone">${m.zone}</div>
             </div>
-            <button onclick="notify('Inviting ${m.name} to party...','info')" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:1px 6px;font-size:0.6rem;cursor:pointer;border-radius:2px;font-family:inherit;">+Party</button>
+            <button data-action="notify" data-msg="Inviting ${m.name} to party..." data-type="info" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:1px 6px;font-size:0.6rem;cursor:pointer;border-radius:2px;font-family:inherit;">+Party</button>
           </div>`).join('')}
         </div>
         <div class="social-title" style="margin-top:1rem;">Global Chat</div>
@@ -418,7 +429,7 @@ function buildSocialPanel(){
         </div>
         <div style="display:flex;gap:0.4rem;margin-top:0.4rem;">
           <input id="chat-input" placeholder="Say something..." style="flex:1;background:var(--bg-card);border:1px solid var(--border);color:var(--text);padding:4px 8px;font-size:0.75rem;border-radius:3px;font-family:inherit;" />
-          <button onclick="sendChat()" style="background:rgba(201,168,76,0.1);border:1px solid var(--border-gold);color:var(--gold);padding:4px 8px;font-size:0.7rem;cursor:pointer;border-radius:3px;font-family:inherit;">Send</button>
+          <button data-action="send-chat" style="background:rgba(201,168,76,0.1);border:1px solid var(--border-gold);color:var(--gold);padding:4px 8px;font-size:0.7rem;cursor:pointer;border-radius:3px;font-family:inherit;">Send</button>
         </div>
       </div>
     </div>
@@ -438,7 +449,7 @@ function buildMarketPanel(){
     <div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:1.5rem;">Player-driven economy · Real-time bids · 5% listing fee</div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
       <div class="market-filter">
-        ${['All','Weapon','Armor','Consumable','Material','Epic+'].map((f,i)=>`<button class="filter-chip${i===0?' active':''}" onclick="filterMarket('${f}',this)">${f}</button>`).join('')}
+        ${['All','Weapon','Armor','Consumable','Material','Epic+'].map((f,i)=>`<button class="filter-chip${i===0?' active':''}" data-action="filter-market" data-filter="${f}">${f}</button>`).join('')}
       </div>
       <div style="font-size:0.75rem;color:var(--gold);">💰 Your Gold: ${gameState.player.gold.toLocaleString()}</div>
     </div>
@@ -454,7 +465,7 @@ function buildMarketPanel(){
         <div class="item-price">
           <span class="item-price-val">💰 ${item.price.toLocaleString()}</span>
           <span class="item-price-qty">Qty: ${item.qty}</span>
-          <button class="buy-item-btn" onclick="buyItem('${item.name}',${item.price})">Buy</button>
+          <button class="buy-item-btn" data-action="buy-item" data-item="${item.name}" data-price="${item.price}">Buy</button>
         </div>
       </div>`).join('')}
     </div>
@@ -538,7 +549,7 @@ function buildCharPanel(){
         <div style="font-size:0.65rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:2px;margin-bottom:0.5rem;">Equipment Slots</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;">
           ${['Helm','Chest','Legs','Weapon','Offhand','Boots','Gloves','Ring','Amulet'].map(slot=>`
-          <div style="background:var(--bg-card);border:1px solid var(--border);padding:0.5rem;border-radius:3px;text-align:center;min-height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;" onclick="notify('${slot} slot — No item equipped.','info')">
+          <div style="background:var(--bg-card);border:1px solid var(--border);padding:0.5rem;border-radius:3px;text-align:center;min-height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;" data-action="notify" data-msg="${slot} slot — No item equipped." data-type="info">
             <div style="font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;">${slot}</div>
             <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">Empty</div>
           </div>`).join('')}
